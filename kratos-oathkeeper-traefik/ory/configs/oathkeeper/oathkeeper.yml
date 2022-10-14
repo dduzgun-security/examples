@@ -1,9 +1,8 @@
-log:
-  level: debug
-  format: json
-
 serve:
   proxy:
+    port: 4455 # run the proxy at port 4455
+  api:
+    port: 4456 # run the api at port 4456
     cors:
       enabled: true
       allowed_origins:
@@ -22,15 +21,23 @@ serve:
       allow_credentials: true
       debug: true
 
+access_rules:
+  matching_strategy: regexp
+  repositories:
+    - file:///etc/config/oathkeeper/access-rules.json
+
 errors:
   fallback:
     - json
-
   handlers:
+    json:
+      enabled: true
+      config:
+        verbose: true
     redirect:
       enabled: true
       config:
-        to: http://127.0.0.1:3000/login
+        to: http://auth.localhost/login
         when:
           -
             error:
@@ -40,49 +47,47 @@ errors:
               header:
                 accept:
                   - text/html
-    json:
-      enabled: true
-      config:
-        verbose: true
+                  - application/json
 
-access_rules:
-  matching_strategy: glob
-  repositories:
-    - file:///etc/config/oathkeeper/access-rules.yml
+mutators:
+  header:
+    enabled: true
+    config:
+      headers:
+        X-Forwarded-User: "{{ print .Subject }}"
+  noop:
+    enabled: true
+  id_token:
+    enabled: true
+    config:
+      issuer_url: http://auth.localhost/ory/oathkeeper
+      jwks_url: file:///etc/config/oathkeeper/jwks.json
+      claims: |
+        {
+          "session": {{ .Extra | toJson }}
+        }
+
+authorizers:
+  allow:
+    enabled: true
+  deny:
+    enabled: true
 
 authenticators:
   anonymous:
     enabled: true
     config:
       subject: guest
-
+  
+  noop:
+    enabled: true
+  
   cookie_session:
     enabled: true
     config:
-      check_session_url: http://kratos.localhost/public/sessions/whoami
+      check_session_url: http://auth.localhost/ory/kratos/public/sessions/whoami
       preserve_path: true
       extra_from: "@this"
       subject_from: "identity.id"
       only:
         - ory_kratos_session
-
-  noop:
-    enabled: true
-
-authorizers:
-  allow:
-    enabled: true
-
-mutators:
-  noop:
-    enabled: true
-
-  id_token:
-    enabled: true
-    config:
-      issuer_url: http://127.0.0.1:3000/
-      jwks_url: file:///etc/config/oathkeeper/id_token.jwks.json
-      claims: |
-        {
-          "session": {{ .Extra | toJson }}
-        }

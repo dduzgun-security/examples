@@ -1,0 +1,80 @@
+[
+    {
+      "id": "ory:kratos:public",
+      "match": {
+        "url": "http://auth.localhost/ory/kratos/public/<.*>",
+        "methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "PATCH",
+          "DELETE"
+        ]
+      },
+      "authenticators": [
+        {
+          "handler": "noop"
+        }
+      ],
+      "authorizer": {
+        "handler": "allow"
+      },
+      "mutators": [
+        {
+          "handler": "noop"
+        }
+      ]
+    },
+    {
+      "id": "ory:frontend:anonymous",
+      "match": {
+        "url": "http://auth.localhost/<error<.*>|settings<.*>|recovery<.*>|verify<.*>|login<.*>|login|register<.*>>",
+        "methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "PATCH",
+          "DELETE"
+        ]
+      },
+      "authenticators": [
+        {
+          "handler": "anonymous"
+        }
+      ],
+      "authorizer": {
+        "handler": "allow"
+      },
+      "mutators": [
+        {
+          "handler": "noop"
+        }
+      ]
+    },
+    {
+      "id": "ory:frontend:protected",
+      "match": {
+        "url": "http://auth.localhost/<debug|dashboard|settings|profile|robots.txt>",
+        "methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "PATCH",
+          "DELETE"
+        ]
+      },
+      "authenticators": [
+        {
+          "handler": "cookie_session"
+        }
+      ],
+      "authorizer": {
+        "handler": "allow"
+      },
+      "mutators": [
+        {
+          "handler": "header"
+        }
+      ]
+    }
+  ]

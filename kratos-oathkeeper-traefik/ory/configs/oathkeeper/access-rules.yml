@@ -1,11 +1,11 @@
 -
   id: "ory:kratos:public"
-  upstream:
-    preserve_host: true
-    url: "http://127.0.0.1:4433"
-    strip_path: /.ory/kratos/public
+  # upstream:
+  #   preserve_host: true
+  #   url: "http://127.0.0.1:4433"
+  #   strip_path: /.ory/kratos/public
   match:
-    url: "http://127.0.0.1:4455/.ory/kratos/public/<**>"
+    url: "http://auth.localhost/ory/kratos/public/<**>"
     methods:
       - GET
       - POST
@@ -20,41 +20,41 @@
   mutators:
     - handler: noop
 
--
-  id: "ory:frontend:anonymous"
-  upstream:
-    preserve_host: true
-    url: "http://127.0.0.1:3000"
-  match:
-    url: "http://127.0.0.1:4455/<{error,recovery,verify,auth/*,**.css,**.js}{/,}>"
-    methods:
-      - GET
-  authenticators:
-    -
-      handler: anonymous
-  authorizer:
-    handler: allow
-  mutators:
-    -
-      handler: noop
+# -
+#   id: "ory:frontend:anonymous"
+#   # upstream:
+#   #   preserve_host: true
+#   #   url: "http://127.0.0.1:3000"
+#   match:
+#     url: "http://auth.localhost/<{error,recovery,verify,login,resetPassword,auth/*,**.css,**.js}{/,}>"
+#     methods:
+#       - GET
+#   authenticators:
+#     -
+#       handler: anonymous
+#   authorizer:
+#     handler: allow
+#   mutators:
+#     -
+#       handler: noop
 
--
-  id: "ory:frontend:protected"
-  upstream:
-    preserve_host: true
-    url: "http://127.0.0.1:3000"
-  match:
-    url: "http://127.0.0.1:4455/<{,debug,dashboard,settings}>"
-    methods:
-      - GET
-  authenticators:
-    -
-      handler: cookie_session
-  authorizer:
-    handler: allow
-  mutators:
-    - handler: id_token
-  errors:
-    - handler: redirect
-      config:
-        to: http://127.0.0.1:4455/auth/login
+# -
+#   id: "ory:frontend:protected"
+#   # upstream:
+#   #   preserve_host: true
+#   #   url: "http://auth.localhost"
+#   match:
+#     url: "http://auth.localhost/<{,debug,dashboard,settings,profile}>"
+#     methods:
+#       - GET
+#   authenticators:
+#     -
+#       handler: cookie_session
+#   authorizer:
+#     handler: allow
+#   mutators:
+#     - handler: id_token
+#   errors:
+#     - handler: redirect
+#       config:
+#         to: http://auth.localhost/login

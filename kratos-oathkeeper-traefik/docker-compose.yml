@@ -7,6 +7,8 @@ services:
 
   traefik:
     image: "traefik:v2.8"
+    # depends_on:
+    #   - oathkeeper
     container_name: "traefik"
     command:
       #- "--log.level=DEBUG"
@@ -19,6 +21,17 @@ services:
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.test-auth.forwardauth.address=http://auth.localhost/ory/oathkeeper/decisions"
+      - "traefik.http.middlewares.test-auth.forwardauth.authResponseHeaders=X-Id-Token,Authorization"
+      - "traefik.http.middlewares.test-auth.forwardauth.trustForwardHeader=true"
+      # - "traefik.http.middlewares.oathkeeperForwardAuth.forwardauth.address=http://auth.localhost/ory/oathkeeper/decisions"
+      # # - "traefik.http.middlewares.oathkeeperForwardAuth.forwardauth.authResponseHeaders=X-Forwarded-User,X-Id-Token,Authorization"
+      # - "traefik.http.middlewares.oathkeeperForwardAuth.forwardauth.authResponseHeaders=X-Forwarded-User"
+      # - "traefik.http.middlewares.oathkeeperForwardAuth.forwardauth.trustForwardHeader=true"
+      # - "traefik.http.middlewares.oathkeeperForwardAuth.forwardauth.tls.insecureSkipVerify=true"
+
 
   whoami:
     image: "traefik/whoami"
@@ -27,7 +40,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.whoami.rule=(Host(`auth.localhost`) && PathPrefix(`/whoami`))"
       - "traefik.http.middlewares.whoami-stripprefix.stripprefix.prefixes=/whoami"
-      - "traefik.http.routers.whoami.middlewares=whoami-stripprefix@docker"
+      - "traefik.http.routers.whoami.middlewares=whoami-stripprefix@docker,test-auth"
       - "traefik.http.routers.whoami.entrypoints=web"
 
   jaeger:
@@ -88,9 +101,10 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.kratos-public.rule=(Host(`auth.localhost`) && PathPrefix(`/ory/kratos/public`))"
       - "traefik.http.middlewares.kratos-public-stripprefix.stripprefix.prefixes=/ory/kratos/public"
-      - "traefik.http.routers.kratos-public.middlewares=kratos-public-stripprefix@docker"
+      - "traefik.http.routers.kratos-public.middlewares=kratos-public-stripprefix@docker,test-auth"
       - "traefik.http.routers.kratos-public.entrypoints=web"
       - "traefik.http.services.kratos-public.loadbalancer.server.port=4433"
+      # - "traefik.http.routers.kratos-public.middlewares=oathkeeper"
 
   kratos_admin:
     depends_on:
@@ -115,31 +129,31 @@ services:
       - "traefik.http.routers.kratos-admin.entrypoints=web"
       - "traefik.http.services.kratos-admin.loadbalancer.server.port=4434"
 
-  # oathkeeper:
-  #   depends_on:
-  #     - kratos_public
-  #     - kratos_admin
-  #     - jaeger
-  #   image: oryd/oathkeeper:v0.40.0
-  #   command: serve --config=/etc/config/oathkeeper/oathkeeper.yml
-  #   environment:
-  #     - TRACING_PROVIDER=jaeger
-  #     - TRACING_PROVIDER_JAEGER_SAMPLING_SERVER_URL=http://jaeger.localhost/sampling
-  #     - TRACING_PROVIDER_JAEGER_LOCAL_AGENT_ADDRESS=jaeger:6831
-  #     - TRACING_PROVIDER_JAEGER_SAMPLING_TYPE=const
-  #     - TRACING_PROVIDER_JAEGER_SAMPLING_VALUE=1
-  #   volumes:
-  #     - type: bind
-  #       source: ${PWD}/ory/configs/oathkeeper
-  #       target: /etc/config/oathkeeper
-  #   restart: on-failure
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.oathkeeper.rule=(Host(`auth.localhost`) && PathPrefix(`/ory/oathkeeper`))"
-  #     - "traefik.http.middlewares.oathkeeper-stripprefix.stripprefix.prefixes=/ory/oathkeeper"
-  #     - "traefik.http.routers.oathkeeper.middlewares=oathkeeper-stripprefix@docker"
-  #     - "traefik.http.routers.oathkeeper.entrypoints=web"
-  #     - "traefik.http.services.oathkeeper.loadbalancer.server.port=4456"
+  oathkeeper:
+    depends_on:
+      - kratos_public
+      - kratos_admin
+      - jaeger
+    image: oryd/oathkeeper:v0.40.0
+    command: serve --config=/etc/config/oathkeeper/oathkeeper.yml
+    environment:
+      - TRACING_PROVIDER=jaeger
+      - TRACING_PROVIDER_JAEGER_SAMPLING_SERVER_URL=http://jaeger.localhost/sampling
+      - TRACING_PROVIDER_JAEGER_LOCAL_AGENT_ADDRESS=jaeger:6831
+      - TRACING_PROVIDER_JAEGER_SAMPLING_TYPE=const
+      - TRACING_PROVIDER_JAEGER_SAMPLING_VALUE=1
+    volumes:
+      - type: bind
+        source: ${PWD}/ory/configs/oathkeeper
+        target: /etc/config/oathkeeper
+    restart: on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.oathkeeper.rule=(Host(`auth.localhost`) && PathPrefix(`/ory/oathkeeper`))"
+      - "traefik.http.middlewares.oathkeeper-stripprefix.stripprefix.prefixes=/ory/oathkeeper"
+      - "traefik.http.routers.oathkeeper.middlewares=oathkeeper-stripprefix@docker"
+      - "traefik.http.routers.oathkeeper.entrypoints=web"
+      - "traefik.http.services.oathkeeper.loadbalancer.server.port=4456"
   
   
   ###########################
@@ -147,6 +161,8 @@ services:
   ###########################
 
   frontend:
+    depends_on:
+      - traefik
     container_name: frontend
     build: ./frontend/authentication
     volumes:
@@ -162,7 +178,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=(Host(`auth.localhost`) && PathPrefix(`/`))"
       - "traefik.http.middlewares.frontend-stripprefix.stripprefix.prefixes=/"
-      - "traefik.http.routers.frontend.middlewares=frontend-stripprefix@docker"
+      - "traefik.http.routers.frontend.middlewares=frontend-stripprefix@docker,test-auth"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
 

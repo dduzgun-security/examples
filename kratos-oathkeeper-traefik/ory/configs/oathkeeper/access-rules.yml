@@ -1,34 +1,52 @@
 -
-  id: "ory:kratos:public"
-  # upstream:
-  #   preserve_host: true
-  #   url: "http://127.0.0.1:4433"
-  #   strip_path: /.ory/kratos/public
+  id: "ory:whoami:anonymous"
+  upstream:
+    url: "http://auth.localhost/whoami"
+    strip_path: /whoami
+    preserve_host: true
   match:
-    url: "http://auth.localhost/ory/kratos/public/<**>"
+    # url: "http://auth.localhost/<.*>"
+    url: "<{https,http}>://auth.localhost<{/,**}>"
     methods:
       - GET
-      - POST
-      - PUT
-      - DELETE
-      - PATCH
   authenticators:
     -
-      handler: noop
+      handler: anonymous
   authorizer:
     handler: allow
   mutators:
-    - handler: noop
+    -
+      handler: noop
+
+# -
+#   id: "ory:frontend:protected"
+#   # upstream:
+#   #   url: "http://auth.localhost/whoami"
+#   #   strip_path: /whoami
+#   match:
+#     url: "<http|https>://auth.localhost/<{,debug,profile,dashboard,settings}>"
+#     methods:
+#       - GET
+#   authenticators:
+#     -
+#       handler: anonymous
+#   authorizer:
+#     handler: allow
+#   mutators:
+#     -
+#       handler: noop
 
 # -
 #   id: "ory:frontend:anonymous"
 #   # upstream:
 #   #   preserve_host: true
-#   #   url: "http://127.0.0.1:3000"
+#   #   url: "http://auth.localhost/<{error,recovery*,verify*,login*,resetPassword*,**.css,**.js}{/,}"
 #   match:
-#     url: "http://auth.localhost/<{error,recovery,verify,login,resetPassword,auth/*,**.css,**.js}{/,}>"
+#     # url: "http://auth.localhost/<.*>"
+#     url: "http://auth.localhost/<{error,recovery*,verify*,login*,resetPassword*,**.css,**.js}{/,}>"
 #     methods:
 #       - GET
+#       - POST
 #   authenticators:
 #     -
 #       handler: anonymous
@@ -47,6 +65,7 @@
 #     url: "http://auth.localhost/<{,debug,dashboard,settings,profile}>"
 #     methods:
 #       - GET
+#       - POST
 #   authenticators:
 #     -
 #       handler: cookie_session

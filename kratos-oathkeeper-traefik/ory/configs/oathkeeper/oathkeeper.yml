@@ -1,30 +1,55 @@
 serve:
   proxy:
     port: 4455 # run the proxy at port 4455
+    # cors:
+    #   enabled: true
+    #   allowed_origins:
+    #     - "*"
+    #   allowed_methods:
+    #     - POST
+    #     - GET
+    #     - PUT
+    #     - PATCH
+    #     - DELETE
+    #   allowed_headers:
+    #     - Authorization
+    #     - Content-Type
+    #   exposed_headers:
+    #     - Content-Type
+    #   allow_credentials: true
+    #   debug: true
   api:
     port: 4456 # run the api at port 4456
-    cors:
-      enabled: true
-      allowed_origins:
-        - "*"
-      allowed_methods:
-        - POST
-        - GET
-        - PUT
-        - PATCH
-        - DELETE
-      allowed_headers:
-        - Authorization
-        - Content-Type
-      exposed_headers:
-        - Content-Type
-      allow_credentials: true
-      debug: true
+    # cors:
+    #   enabled: true
+    #   allowed_origins:
+    #     - "*"
+    #   allowed_methods:
+    #     - POST
+    #     - GET
+    #     - PUT
+    #     - PATCH
+    #     - DELETE
+    #   allowed_headers:
+    #     - Authorization
+    #     - Content-Type
+    #   exposed_headers:
+    #     - Content-Type
+    #   allow_credentials: true
+    #   debug: true
+
+log:
+  level: trace
+  format: json
+  leak_sensitive_values: true
 
 access_rules:
-  matching_strategy: regexp
+  # matching_strategy: regexp
+  # repositories:
+  #   - file:///etc/config/oathkeeper/access-rules.json
+  matching_strategy: glob
   repositories:
-    - file:///etc/config/oathkeeper/access-rules.json
+    - file:///etc/config/oathkeeper/access-rules.yml
 
 errors:
   fallback:
@@ -60,8 +85,8 @@ mutators:
   id_token:
     enabled: true
     config:
-      issuer_url: http://auth.localhost/ory/oathkeeper
-      jwks_url: file:///etc/config/oathkeeper/jwks.json
+      issuer_url: http://auth.localhost/ory/oathkeeper/
+      jwks_url: file:///etc/config/oathkeeper/id_token.jwks.json
       claims: |
         {
           "session": {{ .Extra | toJson }}

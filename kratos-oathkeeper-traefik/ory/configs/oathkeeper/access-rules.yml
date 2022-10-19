@@ -5,7 +5,6 @@
     strip_path: /whoami
     preserve_host: true
   match:
-    # url: "http://auth.localhost/<.*>"
     url: "<{https,http}>://auth.localhost<{/,**}>"
     methods:
       - GET
@@ -18,62 +17,33 @@
     -
       handler: noop
 
-# -
-#   id: "ory:frontend:protected"
-#   # upstream:
-#   #   url: "http://auth.localhost/whoami"
-#   #   strip_path: /whoami
-#   match:
-#     url: "<http|https>://auth.localhost/<{,debug,profile,dashboard,settings}>"
-#     methods:
-#       - GET
-#   authenticators:
-#     -
-#       handler: anonymous
-#   authorizer:
-#     handler: allow
-#   mutators:
-#     -
-#       handler: noop
+-
+  id: "ory:frontend:anonymous"
+  match:
+    url: "<{https,http}>://auth.localhost<{/,error,recovery*,verify*,login*,resetPassword*,**.css,**.js}>"
+    methods:
+      - GET
+      - POST
+  authenticators:
+    -
+      handler: anonymous
+  authorizer:
+    handler: allow
+  mutators:
+    -
+      handler: noop
 
-# -
-#   id: "ory:frontend:anonymous"
-#   # upstream:
-#   #   preserve_host: true
-#   #   url: "http://auth.localhost/<{error,recovery*,verify*,login*,resetPassword*,**.css,**.js}{/,}"
-#   match:
-#     # url: "http://auth.localhost/<.*>"
-#     url: "http://auth.localhost/<{error,recovery*,verify*,login*,resetPassword*,**.css,**.js}{/,}>"
-#     methods:
-#       - GET
-#       - POST
-#   authenticators:
-#     -
-#       handler: anonymous
-#   authorizer:
-#     handler: allow
-#   mutators:
-#     -
-#       handler: noop
-
-# -
-#   id: "ory:frontend:protected"
-#   # upstream:
-#   #   preserve_host: true
-#   #   url: "http://auth.localhost"
-#   match:
-#     url: "http://auth.localhost/<{,debug,dashboard,settings,profile}>"
-#     methods:
-#       - GET
-#       - POST
-#   authenticators:
-#     -
-#       handler: cookie_session
-#   authorizer:
-#     handler: allow
-#   mutators:
-#     - handler: id_token
-#   errors:
-#     - handler: redirect
-#       config:
-#         to: http://auth.localhost/login
+-
+  id: "ory:frontend:protected"
+  match:
+    url: "http://auth.localhost<{/,dashboard,settings,profile,robots.txt}>"
+    methods:
+      - GET
+      - POST
+  authenticators:
+    -
+      handler: cookie_session
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token

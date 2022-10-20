@@ -85,8 +85,8 @@ mutators:
   id_token:
     enabled: true
     config:
-      # issuer_url: http://auth.localhost/ory/oathkeeper/
-      issuer_url: http://oathkeeper:4456/
+      issuer_url: http://auth.localhost/ory/oathkeeper/
+      # issuer_url: http://oathkeeper:4456/
       jwks_url: file:///etc/config/oathkeeper/id_token.jwks.json
       claims: |
         {

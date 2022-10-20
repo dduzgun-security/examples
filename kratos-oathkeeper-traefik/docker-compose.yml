@@ -11,8 +11,7 @@ services:
       - oathkeeper
     container_name: "traefik"
     command:
-      #- "--log.level=DEBUG"
-      - "--log.level=INFO"
+      # - "--log.level=INFO"
       - "--accesslog"
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -29,18 +28,8 @@ services:
       - traefik.http.services.traefik.loadbalancer.server.port=8080
       - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.address=http://oathkeeper:4456/decisions"
       - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.authResponseHeaders=X-User"
-      # - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.address=http://auth.localhost/ory/oathkeeper/decisions"
-      # - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.authResponseHeaders=X-Id-Token,Authorization,X-Forwarded-User"
       - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.trustForwardHeader=true"
       - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.tls.insecureSkipVerify=true"
-
-
-      # - "traefik.http.middlewares.oathkeeperForwardAuth.forwardauth.address=http://auth.localhost/ory/oathkeeper/decisions"
-      # # - "traefik.http.middlewares.oathkeeperForwardAuth.forwardauth.authResponseHeaders=X-Forwarded-User,X-Id-Token,Authorization"
-      # - "traefik.http.middlewares.oathkeeperForwardAuth.forwardauth.authResponseHeaders=X-Forwarded-User"
-      # - "traefik.http.middlewares.oathkeeperForwardAuth.forwardauth.trustForwardHeader=true"
-      # - "traefik.http.middlewares.oathkeeperForwardAuth.forwardauth.tls.insecureSkipVerify=true"
-
 
   whoami:
     image: "traefik/whoami"
@@ -113,7 +102,6 @@ services:
       - "traefik.http.routers.kratos-public.middlewares=kratos-public-stripprefix@docker"
       - "traefik.http.routers.kratos-public.entrypoints=web"
       - "traefik.http.services.kratos-public.loadbalancer.server.port=4433"
-      # - "traefik.http.routers.kratos-public.middlewares=oathkeeper"
 
   kratos_admin:
     depends_on:
@@ -191,21 +179,12 @@ services:
     restart: on-failure
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.oathkeeper.rule=Host(`oathkeeper`)"
+      - "traefik.http.routers.oathkeeper.rule=(Host(`auth.localhost`) && PathPrefix(`/ory/oathkeeper`))"
+      - "traefik.http.middlewares.oathkeeper-stripprefix.stripprefix.prefixes=/ory/oathkeeper"
+      - "traefik.http.routers.oathkeeper.middlewares=oathkeeper-stripprefix@docker"
       - "traefik.http.routers.oathkeeper.entrypoints=web"
       - "traefik.http.routers.oathkeeper.service=oathkeeper"
       - "traefik.http.services.oathkeeper.loadbalancer.server.port=4456"
-      # - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.address=http://oathkeeper:4456/decisions"
-      # - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.authResponseHeaders=X-User"
-
-
-      # - "traefik.http.routers.oathkeeper.rule=(Host(`auth.localhost`) && PathPrefix(`/ory/oathkeeper`))"
-      # - "traefik.http.middlewares.oathkeeper-stripprefix.stripprefix.prefixes=/ory/oathkeeper"
-      # - "traefik.http.routers.oathkeeper.middlewares=oathkeeper-stripprefix@docker"
-      # - "traefik.http.routers.oathkeeper.entrypoints=web"
-      # - "traefik.http.services.oathkeeper.loadbalancer.server.port=4456"
-      # - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.address=http://auth.localhost/ory/oathkeeper/decisions"
-      # - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.authResponseHeaders=X-User"
   
   
   ###########################

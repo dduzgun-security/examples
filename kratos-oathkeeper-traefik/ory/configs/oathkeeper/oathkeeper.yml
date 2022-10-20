@@ -79,13 +79,14 @@ mutators:
     enabled: true
     config:
       headers:
-        X-Forwarded-User: "{{ print .Subject }}"
+        X-User: "{{ print .Subject }}"
   noop:
     enabled: true
   id_token:
     enabled: true
     config:
-      issuer_url: http://auth.localhost/ory/oathkeeper/
+      # issuer_url: http://auth.localhost/ory/oathkeeper/
+      issuer_url: http://oathkeeper:4456/
       jwks_url: file:///etc/config/oathkeeper/id_token.jwks.json
       claims: |
         {

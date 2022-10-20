@@ -55,7 +55,7 @@ const submit = async(kratos: V0alpha2Api, flowId, setErrorMessage, firstName, la
             }
         }, {withCredentials: true, credentials: 'include'})
         .then(({data}) => {
-            window.location.href = process.env.REACT_APP_URL + "/profile";
+            window.location.href = process.env.REACT_APP_URL + "/login";
         })
         .catch((err) => {
             switch (err.response?.status) {

@@ -16,7 +16,7 @@
 -
   id: "ory:frontend:anonymous"
   match:
-    url: "http://auth.localhost/<{error,recovery*,verify*,login*,resetPassword*,**.css,**.js}>"
+    url: "http://auth.localhost/<{error,recovery*,verify*,login*,resetPassword*,profile,**.css,**.js}>"
     methods:
       - GET
       - POST
@@ -32,7 +32,7 @@
 -
   id: "ory:frontend:protected"
   match:
-    url: "<{https,http}>://auth.localhost/<{dashboard,settings,profile,robots.txt}>"
+    url: "<{https,http}>://auth.localhost/<{dashboard,settings,robots.txt}>"
     methods:
       - GET
       - POST

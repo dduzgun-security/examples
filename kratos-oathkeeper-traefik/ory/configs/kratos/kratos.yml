@@ -11,6 +11,7 @@ serve:
         - http://127.0.0.1:3000
         - http://localhost:3000
         - http://frontend.localhost
+        - http://api.localhost
       allowed_methods:
         - POST
         - GET
@@ -38,6 +39,7 @@ selfservice:
     - http://127.0.0.1:3000
     - http://localhost:3000
     - http://auth.localhost
+    - http://api.localhost
     # - http://frontend.localhost
 
   methods:

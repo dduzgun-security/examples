@@ -5,6 +5,7 @@ services:
   # INFRASTRUCTURE RESSOURCES
   ###########################
 
+  # TRAEFIK API GATEWAY
   traefik:
     image: "traefik:v2.8"
     depends_on:
@@ -31,6 +32,7 @@ services:
       - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.trustForwardHeader=true"
       - "traefik.http.middlewares.forwardToOathkeeper.forwardauth.tls.insecureSkipVerify=true"
 
+  # WHOAMI SERVICE
   whoami:
     image: "traefik/whoami"
     container_name: "simple-service"
@@ -41,6 +43,7 @@ services:
       - "traefik.http.routers.whoami.middlewares=whoami-stripprefix@docker,forwardToOathkeeper"
       - "traefik.http.routers.whoami.entrypoints=web"
 
+  # JEAGER FOR TRACING
   jaeger:
     image: jaegertracing/all-in-one
     labels:
@@ -49,6 +52,7 @@ services:
       - "traefik.http.routers.jaeger.entrypoints=web"
       - "traefik.http.services.jaeger.loadbalancer.server.port=16686"
 
+  # POSTGRESQL DATABASE
   postgresd:
     image: postgres:9.6
     ports:
@@ -58,6 +62,7 @@ services:
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=kratos
 
+  # MAIL SERVER (reset password, verify, ..)
   mailslurper:
     image: oryd/mailslurper:latest-smtps
     ports:
@@ -159,6 +164,7 @@ services:
   # APPLICATION RESSOURCES
   ###########################
 
+  # FRONTEND CODE
   frontend:
     depends_on:
       - traefik
@@ -182,3 +188,20 @@ services:
       - "traefik.http.routers.frontend.middlewares=frontend-stripprefix@docker,forwardToOathkeeper"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+
+  # BACKEND SERVICES CODE
+  api-bye:
+    depends_on:
+      - traefik
+    container_name: api-bye
+    build: ./backend/bye
+    ports:
+      - "8091"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-bye.rule=(Host(`api.localhost`) && PathPrefix(`/`))"
+      - "traefik.http.middlewares.api-bye-stripprefix.stripprefix.prefixes=/"
+      - "traefik.http.routers.api-bye.middlewares=api-bye-stripprefix@docker,forwardToOathkeeper"
+      - "traefik.http.routers.api-bye.entrypoints=web"
+      - "traefik.http.services.api-bye.loadbalancer.server.port=8091"
+

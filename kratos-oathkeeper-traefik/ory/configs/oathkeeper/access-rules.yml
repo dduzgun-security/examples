@@ -14,9 +14,32 @@
       handler: noop
 
 -
+  id: "ory:api-bye:anonymous"
+  match:
+    url: "http://api.localhost/<{bye}>"
+    methods:
+      - GET
+  authenticators:
+    -
+      handler: anonymous
+  authorizer:
+    handler: allow
+  mutators:
+    -
+      handler: noop
+
+  # authenticators:
+  #   -
+  #     handler: cookie_session
+  # authorizer:
+  #   handler: allow
+  mutators:
+    - handler: id_token
+
+-
   id: "ory:frontend:anonymous"
   match:
-    url: "http://auth.localhost/<{error,recovery*,verify*,login*,resetPassword*,profile,**.css,**.js}>"
+    url: "http://auth.localhost/<{error,recovery*,verify*,login*,resetPassword*,profile*,**.css,**.js}>"
     methods:
       - GET
       - POST

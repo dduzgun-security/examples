@@ -33,8 +33,8 @@
   #     handler: cookie_session
   # authorizer:
   #   handler: allow
-  mutators:
-    - handler: id_token
+  # mutators:
+  #   - handler: id_token
 
 -
   id: "ory:frontend:anonymous"
